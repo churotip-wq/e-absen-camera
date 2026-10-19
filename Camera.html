@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Kamera Selfie - E-ABSEN GURU-KARYAWAN</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef3f8;color:#173b63;min-height:100vh}.wrap{max-width:900px;margin:auto;padding:24px}.card{background:#fff;border-radius:18px;box-shadow:0 8px 28px rgba(0,0,0,.15);padding:22px;text-align:center}h1{font-size:25px;margin:0 0 6px}.sub{color:#555;margin-bottom:18px}.status{padding:13px;border-radius:10px;background:#f5f7fa;margin:12px 0;font-weight:700}.ok{background:#e8f7ee;color:#08783f}.err{background:#fff0f0;color:#b00020}video{width:min(720px,100%);aspect-ratio:4/3;object-fit:cover;background:#111;border-radius:14px;display:block;margin:14px auto;transform:scaleX(-1)}canvas{display:none}.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:14px 24px;font-size:17px;font-weight:700;cursor:pointer}.primary{background:#173b63;color:#fff}.secondary{background:#e7edf4;color:#173b63}.btn:disabled{opacity:.5;cursor:not-allowed}.hint{margin-top:16px;text-align:left;background:#fff8dd;border:1px solid #e2c35b;padding:13px;border-radius:10px;line-height:1.5}.small{font-size:12px;color:#666;margin-top:12px}
+</style></head><body><div class="wrap"><div class="card">
+<h1>📷 KAMERA SELFIE</h1><div class="sub">E-ABSEN GURU-KARYAWAN — SMK YPT 1 PURBALINGGA</div>
+<div id="status" class="status">Menyiapkan kamera laptop...</div>
+<video id="video" autoplay playsinline muted></video><canvas id="canvas"></canvas>
+<div class="actions"><button id="start" class="btn secondary" type="button">AKTIFKAN KAMERA</button><button id="take" class="btn primary" type="button" disabled>AMBIL SELFIE</button><button id="close" class="btn secondary" type="button">TUTUP</button></div>
+<div class="hint"><b>Langkah:</b> jika Chrome menampilkan permintaan akses kamera, klik <b>Izinkan / Allow</b>. Tunggu wajah/webcam terlihat, lalu klik <b>AMBIL SELFIE</b>. Jika webcam sedang dipakai Zoom, Meet, Teams, WhatsApp, atau Camera Windows, tutup aplikasi tersebut terlebih dahulu.</div>
+<div class="small">Foto dikirim kembali ke halaman E-ABSEN yang membuka jendela ini.</div>
+</div></div>
+<script>
+const params=new URLSearchParams(location.search), nonce=params.get('nonce')||'';let stream=null;
+const video=document.getElementById('video'),canvas=document.getElementById('canvas'),statusEl=document.getElementById('status'),take=document.getElementById('take'),start=document.getElementById('start');
+function setStatus(t,ok=false,err=false){statusEl.textContent=t;statusEl.className='status'+(ok?' ok':'')+(err?' err':'')}
+async function openCamera(){stop();take.disabled=true;setStatus('Meminta akses webcam laptop...');
+if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setStatus('Halaman kamera harus dibuka melalui HTTPS. Hubungi Admin.',false,true);return}
+try{let s;try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'},width:{ideal:1280},height:{ideal:720}},audio:false})}catch(e){s=await navigator.mediaDevices.getUserMedia({video:true,audio:false})}stream=s;video.srcObject=s;await video.play();setStatus('KAMERA AKTIF — wajah sudah terlihat. Klik AMBIL SELFIE.',true);take.disabled=false}catch(e){let m='Kamera belum dapat diaktifkan.';if(e.name==='NotAllowedError')m='Klik IZINKAN / ALLOW pada permintaan kamera Chrome, lalu klik AKTIFKAN KAMERA lagi.';else if(e.name==='NotReadableError')m='Webcam sedang dipakai aplikasi lain. Tutup Zoom/Meet/Teams/Camera Windows lalu coba lagi.';else if(e.name==='NotFoundError')m='Webcam laptop tidak ditemukan. Periksa kamera Windows.';setStatus(m,false,true)}}
+function takePhoto(){if(!video.videoWidth){setStatus('Kamera belum siap.',false,true);return}const max=800,scale=Math.min(1,max/video.videoWidth);canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);const c=canvas.getContext('2d');c.save();c.translate(canvas.width,0);c.scale(-1,1);c.drawImage(video,0,0,canvas.width,canvas.height);c.restore();const dataUrl=canvas.toDataURL('image/jpeg',.78);if(window.opener&&!window.opener.closed){window.opener.postMessage({type:'EABSEN_CAMERA_SELFIE_V346',dataUrl,nonce},'*');setStatus('SELFIE BERHASIL. Kembali ke aplikasi E-ABSEN.',true);setTimeout(()=>window.close(),600)}else setStatus('Halaman E-ABSEN utama tidak ditemukan.',false,true)}
+function stop(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null;take.disabled=true}start.addEventListener('click',openCamera);take.addEventListener('click',takePhoto);document.getElementById('close').addEventListener('click',()=>{stop();window.close()});window.addEventListener('beforeunload',stop);openCamera();
+</script></body></html>
